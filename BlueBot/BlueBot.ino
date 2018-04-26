@@ -256,7 +256,7 @@ void setup()
 
 void loop()
 // runs endlessly as fast as possible to control fins
-// precedences: backward>left,right; left>right 
+// precedences: backward>forward,left,right; left>right
 {
   static Actuation caudal(cauddors_freq, caudal_1, caudal_2, fin_mode);
   static Actuation dorsal(cauddors_freq, dorsal_1, dorsal_2, "step_fct");
@@ -284,6 +284,7 @@ void loop()
 
   if (backward == 1)
   {
+    forward = 0;
     left = 0;
     right = 0;
     pectoral_r.on();
