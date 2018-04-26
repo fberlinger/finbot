@@ -11,6 +11,11 @@ String logfile = "180501_1.txt"; // adjust file name for data logging here
 // INPUT PINS (SENSORS)
 const uint8_t photodiode = 6;
 
+// SENSOR VARIABLES
+uint16_t pres; // {mmH20}, pressure
+// int16_t ax, ay, az, gx, gy, gz, mx, my, mz; // IMU
+// photodiode
+
 // OUTPUT PINS (ACTUATORS)
 const uint8_t caudal_1 = 6; // 5
 const uint8_t caudal_2 = 9; // 6
@@ -207,6 +212,11 @@ void setup()
   blueBot.println();
   blueBot.flush();
 
+  // INITIALIZE SENSORS
+  initialize_pressure_sensor(); // pressure
+  // IMU
+  // photodiode
+
   // ARM MOTORS
   pinMode(caudal_1, OUTPUT);
   pinMode(caudal_2, OUTPUT);
@@ -334,6 +344,11 @@ void robot_ctrl()
   sei(); // enable interrupts within interrupts
   counter++;
 
+  // READ SENSORS
+  read_pressure_sensor(pres); // {mmH20}, pressure
+  // IMU
+  // photodiode
+
   // UPDATE ACTUATION
   dive = 0; 
   forward = 1;
@@ -360,7 +375,9 @@ void robot_ctrl()
   Serial.print(left);
   Serial.print(",");
   Serial.print(right);
-  Serial.print(",");  
+  Serial.print(",");
+  Serial.print(pres);
+  Serial.print(","); 
   uint32_t loop_duration = micros() - time_start;
   Serial.println(loop_duration);
 }
