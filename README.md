@@ -7,4 +7,5 @@ Can BlueBot Reduce its Energy Consumption in a Free Swimming Robot Collective?
 - ReadFileFromSD: Code to read SD card from robot. Do not change.
 - OldCodeExample: Old code examples on how to use sensor and do control. Get ideas from here.
 - Libraries: Arduino libraries.
+- TestingRoutines: Contains tests for electronic components.
 - Datasheets: Datasheets of used electronic components.
