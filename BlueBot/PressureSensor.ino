@@ -44,7 +44,7 @@ uint8_t initialize_pressure_sensor()
   }
 }
 
-void read_pressure_sensor(uint16_t& p_mmH20)
+void read_pressure(uint16_t& p_mmH20)
 // read pressure sensor based on specified model
 // returns data in mmH20
 {
