@@ -16,7 +16,6 @@ const uint8_t photodiode = 6;
 uint16_t pres; // {mmH20}, pressure
 // int16_t ax, ay, az, gx, gy, gz, mx, my, mz; // IMU
 uint16_t light; // light intensity
-uint16_t pd_thresh = 400; // photodiode, 400 in blue light, 520 in blue + ambient light
 Adafruit_INA219 ina219;
 uint16_t power; // {mW}, power
 
@@ -32,6 +31,7 @@ const uint8_t pectoral_right_2 = 17;
 const uint8_t LED = 7; // 9
 
 // ACTION STATES
+bool depth_ctrl = 0;
 bool homing = 0;
 bool forward = 0;
 bool backward = 0;
@@ -42,6 +42,8 @@ bool blink_LED = 0;
 
 // VARIABLES FOR CONTROL ALGORITHMS
 uint32_t counter = 0; // keep track of time
+uint16_t pd_thresh = 400; // photodiode, 400 in blue light, 520 in blue + ambient light
+uint16_t target_depth = 0; // {mm}, robot target depth
 const uint8_t robot_ctrl_freq = 10; // {Hz}, robot ctrl frequency
 String fin_mode = "step_fct"; // [step_fct, sine_fct], fin mode for caudal fin
 const float cauddors_freq = 4.0; // [1-4]{Hz}, default frequency for caudal and dorsal fin
@@ -220,6 +222,7 @@ void setup()
   // INITIALIZE SENSORS
   initialize_pressure_sensor(); // pressure
   // IMU
+  //initialize_depth_ctrl(); // depth ctrl
   //initialize_photodiode_thresholds(pd_thresh); // photodiode
   ina219.begin(); // power
 
@@ -262,13 +265,20 @@ void setup()
 
 void loop()
 // runs endlessly as fast as possible to control fins
-// precedences: backward>forward,left,right; left>right
+// precedences:
+// depth_ctrl>dive; homing>backward,forward,left,right;
+// backward>forward,left,right; left>right
 {
   static Actuation caudal(cauddors_freq, caudal_1, caudal_2, fin_mode);
   static Actuation dorsal(cauddors_freq, dorsal_1, dorsal_2, "step_fct");
   static Actuation pectoral_l(pect_freq, pectoral_left_1, pectoral_left_2, "step_fct");
   static Actuation pectoral_r(pect_freq, pectoral_right_1, pectoral_right_2, "step_fct");
   static Actuation led(1, LED, LED, "LED");
+
+  if (depth_ctrl == 1)
+  {
+    maintain_target_depth();
+  }
 
   if (homing == 1)
   {
@@ -363,8 +373,13 @@ void robot_ctrl()
   read_power(power); // {mW}, power consumption of caudal fin
 
   // UPDATE ACTIONS
+  depth_ctrl = 0;
   homing = 0;
-  dive = 0; 
+  if (depth_ctrl == 0)
+  // set dive only if not controlled by depth_ctrl
+  {
+    dive = 0;
+  } 
   forward = 1;
   backward = 0;
   left = 0;
@@ -379,6 +394,16 @@ void robot_ctrl()
 
   // PRINT TO SERIAL MONITOR
   Serial.print(counter);
+  Serial.print(",");  
+  Serial.print(pres);
+  Serial.print(",");
+  Serial.print(light);
+  Serial.print(",");
+  Serial.print(power);
+  Serial.print(",");
+  Serial.print(depth_ctrl);
+  Serial.print(",");
+  Serial.print(homing);
   Serial.print(",");
   Serial.print(dive);
   Serial.print(",");
@@ -389,12 +414,6 @@ void robot_ctrl()
   Serial.print(left);
   Serial.print(",");
   Serial.print(right);
-  Serial.print(",");
-  Serial.print(pres);
-  Serial.print(",");
-  Serial.print(light);
-  Serial.print(",");
-  Serial.print(power);
   Serial.print(",");
   uint32_t loop_duration = micros() - time_start;
   Serial.println(loop_duration);

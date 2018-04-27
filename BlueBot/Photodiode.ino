@@ -35,8 +35,11 @@ void initialize_photodiode_thresholds(uint16_t& threshold_sampled)
   // set threshold at half the peak
   threshold_sampled = sample_min + (sample_max - sample_min) / 2;
 
+  Serial.print("light threshold sampled = ");
+  Serial.println(threshold_sampled);
   blueBot.print("light threshold sampled = ");
   blueBot.println(threshold_sampled);
+  blueBot.flush();
 }
 
 void read_photodiode(uint16_t& light_intensity)
