@@ -15,7 +15,8 @@ const uint8_t photodiode = 6;
 // SENSOR VARIABLES
 uint16_t pres; // {mmH20}, pressure
 // int16_t ax, ay, az, gx, gy, gz, mx, my, mz; // IMU
-// photodiode
+uint16_t light; // light intensity
+uint16_t pd_thresh = 400; // photodiode, 400 in blue light, 520 in blue + ambient light
 Adafruit_INA219 ina219;
 uint16_t power; // {mW}, power
 
@@ -30,7 +31,8 @@ const uint8_t pectoral_right_1 = 16;
 const uint8_t pectoral_right_2 = 17;
 const uint8_t LED = 7; // 9
 
-// MOTION STATES
+// ACTION STATES
+bool homing = 0;
 bool forward = 0;
 bool backward = 0;
 bool dive = 0;
@@ -218,7 +220,7 @@ void setup()
   // INITIALIZE SENSORS
   initialize_pressure_sensor(); // pressure
   // IMU
-  // photodiode
+  //initialize_photodiode_thresholds(pd_thresh); // photodiode
   ina219.begin(); // power
 
   // ARM MOTORS
@@ -267,6 +269,11 @@ void loop()
   static Actuation pectoral_l(pect_freq, pectoral_left_1, pectoral_left_2, "step_fct");
   static Actuation pectoral_r(pect_freq, pectoral_right_1, pectoral_right_2, "step_fct");
   static Actuation led(1, LED, LED, "LED");
+
+  if (homing == 1)
+  {
+    homing_to_light();
+  }
 
   if (dive == 1)
   {
@@ -352,10 +359,11 @@ void robot_ctrl()
   // READ SENSORS
   read_pressure(pres); // {mmH20}, diving depth
   // IMU
-  // photodiode
+  read_photodiode(light); // photodiode
   read_power(power); // {mW}, power consumption of caudal fin
 
-  // UPDATE ACTUATION
+  // UPDATE ACTIONS
+  homing = 0;
   dive = 0; 
   forward = 1;
   backward = 0;
@@ -383,6 +391,8 @@ void robot_ctrl()
   Serial.print(right);
   Serial.print(",");
   Serial.print(pres);
+  Serial.print(",");
+  Serial.print(light);
   Serial.print(",");
   Serial.print(power);
   Serial.print(",");
