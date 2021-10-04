@@ -1,6 +1,8 @@
 # Finbot
 Can Finbot reduce its energy consumption in a free swimming robot collective?
 
+Code is written in **C++** and optimized for running on an Arduino Pro Mini (5 V version, powered by an ATmega328).
+
 ## Folders
 
 - BlueBot: Complete code to run robot. Do not change. Create copies of it.
